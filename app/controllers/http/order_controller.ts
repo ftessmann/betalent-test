@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import OrderService from '#services/order/order_service'
+import { orderValidator } from '#validators/order_validator'
 
 export default class OrderController {
   private orderService: OrderService
@@ -8,9 +9,9 @@ export default class OrderController {
     this.orderService = new OrderService()
   }
 
-  public async store({ request }: HttpContext) {
+  public async store({ request, response }: HttpContext) {
     try {
-      const payload = request.all()
+      const payload = await orderValidator.validate(request.all())
 
       const result = await this.orderService.createOrder({
         name: payload.name,
@@ -22,10 +23,10 @@ export default class OrderController {
 
       return result
     } catch (error) {
-      return {
+      return response.status(400).json({
         success: false,
         message: error.message,
-      }
+      })
     }
   }
 }
